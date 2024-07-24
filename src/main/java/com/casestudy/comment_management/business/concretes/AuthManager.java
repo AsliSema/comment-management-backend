@@ -6,6 +6,7 @@ import com.casestudy.comment_management.business.dtos.request.user.RegisterReque
 import com.casestudy.comment_management.business.dtos.response.user.GetUserResponse;
 import com.casestudy.comment_management.business.dtos.response.user.LoginResponse;
 import com.casestudy.comment_management.business.dtos.response.user.RegisterResponse;
+import com.casestudy.comment_management.business.rules.UserBusinessRules;
 import com.casestudy.comment_management.core.enums.Role;
 import com.casestudy.comment_management.core.security.JwtService;
 import com.casestudy.comment_management.core.utilities.exceptions.types.BusinessException;
@@ -29,25 +30,28 @@ public class AuthManager implements AuthService {
 
     private UserRepository userRepository;
     private ModelMapperService modelMapperService;
+
+    private UserBusinessRules userBusinessRules;
     private BCryptPasswordEncoder passwordEncoder;
 
     private JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthManager(UserRepository userRepository, ModelMapperService modelMapperService, BCryptPasswordEncoder passwordEncoder, JwtService jwtService, @Lazy AuthenticationManager authenticationManager) {
+    public AuthManager(UserRepository userRepository, ModelMapperService modelMapperService, BCryptPasswordEncoder passwordEncoder, JwtService jwtService, @Lazy AuthenticationManager authenticationManager, UserBusinessRules userBusinessRules) {
         this.userRepository = userRepository;
         this.modelMapperService = modelMapperService;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
+        this.userBusinessRules = userBusinessRules;
     }
 
 
     @Override
     public RegisterResponse register(RegisterRequest request) {
 
-//        userBusinessRules.checkIfUserExist(request.getEmail());
-//        userBusinessRules.checkIfPasswordWrittenCorrectly(request.getPassword(), request.getConfirmPassword());
+        System.out.println(request.getEmail());
+      userBusinessRules.checkIfUserExist(request.getEmail());
 
         User newUser = User
                 .builder()
@@ -67,10 +71,10 @@ public class AuthManager implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        //sonradan ekle kontrol et!
-//        userBusinessRules.checkUserPresence(request.getEmail());
-        Optional<User> user = userRepository.findByEmail(request.getEmail());
 
+        userBusinessRules.checkUserPresence(request.getEmail());
+
+        Optional<User> user = userRepository.findByEmail(request.getEmail());
 
         if (!passwordEncoder.matches(request.getPassword(), user.get().getPassword())) {
             throw new IllegalStateException("Wrong email or password!");

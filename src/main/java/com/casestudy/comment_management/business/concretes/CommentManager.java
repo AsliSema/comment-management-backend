@@ -12,6 +12,7 @@ import com.casestudy.comment_management.dataAccess.CommentRepository;
 import com.casestudy.comment_management.entities.concretes.Comment;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import java.util.Comparator;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -72,6 +73,9 @@ public class CommentManager implements CommentService {
     @Override
     public List<GetCommentsByUserResponse> getCommentsBelongUser(int userId) {
         List<Comment> comments = commentRepository.getCommentsByUserId(userId);
+
+        comments.sort(Comparator.comparing(Comment::getCreatedDate).reversed());
+
         List<GetCommentsByUserResponse>  response = comments.stream().map(comment -> modelMapperService.forResponse().map(comment, GetCommentsByUserResponse.class)).collect(Collectors.toList());
 
         return response;
